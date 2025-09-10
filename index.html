@@ -351,7 +351,20 @@ SIDEBOARD:
     let NAME_MAP = new Map();    // key -> display name
     let BANNED = new Set();
     let RESTRICTED = new Set();
-    const BASIC_SET = new Set(["plains","island","swamp","mountain","forest"]);
+// === Jank helpers (must come BEFORE renderTable/exportCSV/scoreDeck) ===
+const DUAL_SET = new Set([
+  "badlands","bayou","plateau","savannah","scrubland",
+  "taiga","tropicalisland","tundra","undergroundsea","volcanicisland"
+]);
+function isDual(key){ return DUAL_SET.has(key); }
+function isStaple(total){ return Number(total) >= 350; }
+window.jankWeight = function window.jankWeight(t, key){
+  if (BASIC_SET.has(key) || isDual(key) || isStaple(t)) return 0;
+  const logMax = Math.log(Math.max(1, MAX_TOTAL) + 1);
+  return Math.round(100 * (1 - (Math.log((Number(t)||0) + 1) / logMax)));
+};
+
+    const BASIC_SET
   const DUAL_SET = new Set(["badlands","bayou","plateau","savannah","scrubland","taiga","tropicalisland","tundra","undergroundsea","volcanicisland"]);
   function isDual(key){ return DUAL_SET.has(key); }
   function isStaple(total){ return total >= 350; }
@@ -574,7 +587,7 @@ SIDEBOARD:
 
     function renderTable(threshold, setFilter){
       const rows = allRows.filter(r => r.total <= threshold && (!setFilter || r.set === setFilter) && passesColorFilter(r) && passesTypeFilter(r) && passesSuperFilter(r) && passesRarityFilter(r) && passesManaFilter(r) && passesNameSearch(r));
-      rows.forEach(r => { r.jankValue = jankWeight(r.total,r.key)===0 ? 0 : Number((jankWeight(r.total,r.key)/60).toFixed(2)); });
+      rows.forEach(r => { r.jankValue = window.jankWeight(r.total, r.key) === 0 ? 0 : Number((window.jankWeight(r.total, r.key)/60).toFixed(2)); });
       const data = rows.map(r => {
         const isBan = BANNED.has(r.key) || HARD_BANNED.has(r.key);
         const isRes = RESTRICTED.has(r.key);
@@ -610,7 +623,7 @@ SIDEBOARD:
       const set = document.getElementById('setFilter').value || '';
       const rows = allRows.filter(r => r.total <= v && (!set || r.set === set) && passesColorFilter(r) && passesTypeFilter(r) && passesSuperFilter(r) && passesRarityFilter(r) && passesManaFilter(r) && passesNameSearch(r));
       const header = ['Set','Card','Main Deck','Sideboard','Total','Jank Pts (per copy)'];
-      const lines = [header.join(',')].concat(rows.map(r => [r.set, r.card, r.main, r.side, r.total, jankWeight(r.total,r.key)===0 ? '0' : (jankWeight(r.total,r.key)/60).toFixed(2)].join(',')));
+      const lines = [header.join(',')].concat(rows.map(r => [r.set, r.card, r.main, r.side, r.total, window.jankWeight(r.total, r.key) === 0 ? '0' : (window.jankWeight(r.total, r.key)/60).toFixed(2)].join(',')));
       const blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'});
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
       const rtag = rarityState.size?`-rarity-${Array.from(rarityState).join('_')}`:'';
@@ -677,8 +690,8 @@ SIDEBOARD:
 
       // Jank score (basic lands contribute 0)
       const logMax = Math.log(Math.max(1,MAX_TOTAL) + 1); const weight = (t) => 100 * (1 - (Math.log((t||0)+1) / logMax));
-      let copiesMain = 0, raw = 0; for (const m of matchedMain){ copiesMain += m.count; const w = BASIC_SET.has(m.key) ? 0 : jankWeight(m.total,m.key); raw += m.count * w; }
-      let rawSide = 0; if (includeSide){ for (const s of matchedSide){ const w = BASIC_SET.has(s.key) ? 0 : jankWeight(s.total,s.key); rawSide += s.count * w; } }
+      let copiesMain = 0, raw = 0; for (const m of matchedMain){ copiesMain += m.count; const w = BASIC_SET.has(m.key) ? 0 : window.jankWeight(m.total,m.key); raw += m.count * w; }
+      let rawSide = 0; if (includeSide){ for (const s of matchedSide){ const w = BASIC_SET.has(s.key) ? 0 : window.jankWeight(s.total,s.key); rawSide += s.count * w; } }
       const deepCopies = matchedMain.filter(x => x.total <= THRESH_LIGHT).reduce((a,b)=> a + b.count, 0);
       const deepDensity = copiesMain ? Math.round(100 * deepCopies / copiesMain) : 0;
       const pool = [...matchedMain, ...(includeSide?matchedSide:[])];
