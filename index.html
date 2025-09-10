@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -350,15 +351,11 @@ SIDEBOARD:
     let NAME_MAP = new Map();    // key -> display name
     let BANNED = new Set();
     let RESTRICTED = new Set();
-    const BASIC_SET
+    const BASIC_SET = new Set(["plains","island","swamp","mountain","forest"]);
   const DUAL_SET = new Set(["badlands","bayou","plateau","savannah","scrubland","taiga","tropicalisland","tundra","undergroundsea","volcanicisland"]);
   function isDual(key){ return DUAL_SET.has(key); }
   function isStaple(total){ return total >= 350; }
-  function jankWeight(t,key){
-    if (BASIC_SET.has(key) || isDual(key) || isStaple(t)) return 0;
-    const logMax = Math.log(Math.max(1,MAX_TOTAL)+1);
-    return Math.round(100 * (1 - (Math.log((Number(t)||0)+1) / logMax)));
-  }
+  
 
   // keep original BASIC_SET = new Set(["plains","island","swamp","mountain","forest"]);
     const HARD_BANNED = new Set(["bloodmoon","karakas","arenaoftheancients","bronzetablet","cityinabottle","golgothiansylex","jeweledbird","libraryofalexandria","moat","rebirth","shahrazad","tempestefreet"]);
@@ -400,7 +397,7 @@ SIDEBOARD:
     function parseColorsFromRow(r){ const out=new Set(); let cols=r.colors||r.colorIdentity||r.colours||''; if(cols){ String(cols).split(/[\s,;]+/).forEach(tok=>{ const c=String(tok).trim().toUpperCase(); if(/^[WUBRG]$/.test(c)) out.add(c); }); } if(!out.size && r.manaCost){ const m=String(r.manaCost); if(/{W}/i.test(m)) out.add('W'); if(/{U}/i.test(m)) out.add('U'); if(/{B}/i.test(m)) out.add('B'); if(/{R}/i.test(m)) out.add('R'); if(/{G}/i.test(m)) out.add('G'); } return out; }
     function sliderToThreshold(s){ const k = Math.log(Math.max(1,MAX_TOTAL)+1)/100; return Math.round(Math.exp(k*s)-1); }
     function thresholdToSlider(t){ const k = Math.log(Math.max(1,MAX_TOTAL)+1)/100; return Math.round(Math.log((t||0)+1)/(k||1)); }
-    function jankWeight(t){ const logMax = Math.log(Math.max(1,MAX_TOTAL)+1); return Math.round(100 * (1 - (Math.log((Number(t)||0)+1) / logMax))); }
+    
 
     // === BOOT ===
     window.addEventListener('DOMContentLoaded', () => { try { bindDeckTools(); } catch(e){ console.error(e); } boot(); });
@@ -577,7 +574,7 @@ SIDEBOARD:
 
     function renderTable(threshold, setFilter){
       const rows = allRows.filter(r => r.total <= threshold && (!setFilter || r.set === setFilter) && passesColorFilter(r) && passesTypeFilter(r) && passesSuperFilter(r) && passesRarityFilter(r) && passesManaFilter(r) && passesNameSearch(r));
-      rows.forEach(r => { r.jankValue = BASIC_SET.has(r.key) ? 0 : Number((jankWeight(r.total)/60).toFixed(2)); });
+      rows.forEach(r => { r.jankValue = jankWeight(r.total,r.key)===0 ? 0 : Number((jankWeight(r.total,r.key)/60).toFixed(2)); });
       const data = rows.map(r => {
         const isBan = BANNED.has(r.key) || HARD_BANNED.has(r.key);
         const isRes = RESTRICTED.has(r.key);
@@ -613,7 +610,7 @@ SIDEBOARD:
       const set = document.getElementById('setFilter').value || '';
       const rows = allRows.filter(r => r.total <= v && (!set || r.set === set) && passesColorFilter(r) && passesTypeFilter(r) && passesSuperFilter(r) && passesRarityFilter(r) && passesManaFilter(r) && passesNameSearch(r));
       const header = ['Set','Card','Main Deck','Sideboard','Total','Jank Pts (per copy)'];
-      const lines = [header.join(',')].concat(rows.map(r => [r.set, r.card, r.main, r.side, r.total, BASIC_SET.has(r.key) ? '0' : (jankWeight(r.total)/60).toFixed(2)].join(',')));
+      const lines = [header.join(',')].concat(rows.map(r => [r.set, r.card, r.main, r.side, r.total, jankWeight(r.total,r.key)===0 ? '0' : (jankWeight(r.total,r.key)/60).toFixed(2)].join(',')));
       const blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'});
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
       const rtag = rarityState.size?`-rarity-${Array.from(rarityState).join('_')}`:'';
