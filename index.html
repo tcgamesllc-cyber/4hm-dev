@@ -127,7 +127,7 @@
 </head>
 <body>
 <div id="stagingBanner">
-  🚧 DEV VERSION — Not for Production Use 🚧 | 
+  🚧 STAGING VERSION — Not for Production Use 🚧 | 
   <a href="https://tcgamesllc-cyber.github.io/4hm/" target="_blank">
     Go to Production Site →
   </a>
@@ -606,7 +606,7 @@ SIDEBOARD:
       if(!modal || !body || !open || !close) return;
       const notes = [
   {title:'Score calculation updated', items:[
-    'Revised scoring: linear density bonus (max +12), no Ultra bonuses, sideboard counts 25% when included.'
+    'Scoring revised: linear density (max +12), no Ultra bonuses, sideboard impact capped at +2.'
   ]}
 ];
       body.innerHTML = notes.map(n => `<h4 style="margin:8px 0 4px 0;">${n.title}</h4><ul style="margin:4px 0 10px 20px;">${n.items.map(i=>`<li>${i}</li>`).join('')}</ul>`).join('');
@@ -797,7 +797,7 @@ SIDEBOARD:
       const seen = new Set(); let deep=0, med=0, light=0, ultralight=0;
       for(const m of matchedMain){ if(seen.has(m.key)) continue; seen.add(m.key); const t=m.total; if(t<=THRESH_DEEP) deep++; else if(t<=THRESH_MED) med++; else if(t<=THRESH_LIGHT) light++; else if(t<=THRESH_ULTRALIGHT) ultralight++; }
 
-      return { score: Math.round(finalScore), baseScore: Math.round(baseScore), bonus, deepDensity, top10, tierCounts:{deep,med,light,ultralight}, copiesMain, over60, over60Bonus, staplesNeutralizedCount, lowPlayBonusPts, lowPlayCounts, includeSide };
+      return { score: Math.round(finalScoreCapped), baseScore: Math.round(baseScore), bonus, deepDensity, top10, tierCounts:{deep,med,light,ultralight}, copiesMain, over60, over60Bonus, staplesNeutralizedCount, lowPlayBonusPts, lowPlayCounts, includeSide };
     }
 
     function renderDeckScore(r){
