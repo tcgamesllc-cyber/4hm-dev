@@ -790,7 +790,15 @@ SIDEBOARD:
       const adjustedBase = baseScore;
       const finalScore = Math.max(0, Math.min(100, adjustedBase + bonus + over60Bonus));
 
-      // Top jankiest (by per‑copy weight), basics/duals/staples=0
+            const deepDensityMain = copiesMain ? Math.round(100 * deepCopies / copiesMain) : 0;
+      const baseScoreMain = Math.max(0, Math.min(100, (raw / (Math.max(1, nonLandMain) * 100)) * 100));
+      const densityBonusMain = Math.round(12 * (deepDensityMain / 100));
+      const over60Main = Math.max(0, copiesMain - 60);
+      const over60BonusMain = over60Main * 0.25;
+      const finalMainOnly = Math.max(0, Math.min(100, baseScoreMain + densityBonusMain + over60BonusMain));
+      const SB_MAX_DELTA = 2;
+      const finalScoreCapped = includeSide ? Math.min(100, Math.min(finalScore, finalMainOnly + SB_MAX_DELTA)) : finalScore;
+// Top jankiest (by per‑copy weight), basics/duals/staples=0
       const allForTop = [...matchedMain].map(x => ({key:x.key, name:x.official, w: ((BASIC_SET.has(x.key) || DUELS_SET.has(x.key) || x.total >= OVERPLAYED_THRESHOLD)) ? 0 : weight(x.total), total:x.total, count:x.count})); allForTop.sort((a,b)=> b.w - a.w); const top10 = allForTop.slice(0,10);
 
       // Tier counts (unique card names in main only)
