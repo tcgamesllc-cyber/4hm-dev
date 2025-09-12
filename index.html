@@ -605,10 +605,10 @@ SIDEBOARD:
       const close = document.getElementById('releaseClose');
       if(!modal || !body || !open || !close) return;
       const notes = [
-        {title:'Score calculation updated', items:[
+        {title:'v1.5 Score calculation updated (Sep 11 2025)', items:[
     'Scoring revised: linear density (max +12), no Ultra bonuses, sideboard impact capped at +2.'
   ]},
-        {title:'v1.4 — Land‑neutral & Neutral Staples (Sep 2025)', items:[
+        {title:'v1.4 — Land‑neutral & Neutral Staples', items:[
           'Base score now ignores lands; basics & ABUR duals remain 0 pts.',
           'Staples (4HM Total ≥ 350) are neutral: 0 pts, no penalties.',
           'Sideboard, when included, adds bonuses but never dilutes the denominator.',
@@ -637,12 +637,6 @@ SIDEBOARD:
       modal.addEventListener('click', (e)=>{ if(e.target.id==='releaseModal') modal.classList.remove('open'); });
     }
 
-
-      body.innerHTML = notes.map(n => `<h4 style="margin:8px 0 4px 0;">${n.title}</h4><ul style="margin:4px 0 10px 20px;">${n.items.map(i=>`<li>${i}</li>`).join('')}</ul>`).join('');
-      open.addEventListener('click', (e)=>{ e.preventDefault(); modal.classList.add('open'); });
-      close.addEventListener('click', ()=> modal.classList.remove('open'));
-      modal.addEventListener('click', (e)=>{ if(e.target.id==='releaseModal') modal.classList.remove('open'); });
-    }
 
     function redraw(){ const abs = Number(document.getElementById('thresholdNumber').value)||0; renderTable(abs, document.getElementById('setFilter').value || ''); }
 
